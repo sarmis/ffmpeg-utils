@@ -40,9 +40,14 @@ async function main() {
         const bin    = path.join(__dirname, '/bin/ffmpeg.exe')
         const input  = path.join(args.src, files[i]);
         const output = path.join(args.dst, files[i])
-        const cmd    = `${bin} -i "${input}" -c:v h264 -b:v 4000k -c:a acc -b:a 256k"${output}"`
+        const cmd    = `${bin} -i "${input}" -c:v h264 -b:v 4000k -c:a aac -b:a 256k "${output}"`
         console.log(cmd);
-        await uticls.exec(cmd, {});
+        try {
+            await exec_(cmd, {});
+            console.log(`Transcoded: ${files[i]}`)
+        } catch(e) {
+            console.log(e);
+        }
     }
     //ffmpeg -i %1 -c:v h264 -b:v 4000k -c:a aac -b:a 256k %1.mp4
     
