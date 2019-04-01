@@ -1,0 +1,25 @@
+{
+    "name"          : "ffmpeg-utils",
+    "version"       : "1.0.0",
+    "description"   : "ffmpeg-utils",
+    "main"          : "sync.js",
+    "homepage"      : "https://github.com/sarmis/ffmpeg-utils#readme",
+    "author"        : "thomas.sarmis@gmail.com",
+    "license"       : "ISC",
+
+    "scripts": {
+    },
+    
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/sarmis/ffmpeg-utils.git"
+    }, 
+    
+    "bugs": {
+        "url": "https://github.com/sarmis/ffmpeg-utils/issues"
+    },
+
+    "dependencies": {
+        "minimist": "^1.2.0"
+    }
+}
