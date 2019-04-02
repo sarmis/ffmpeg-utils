@@ -2,23 +2,29 @@ const fs   = require('fs');
 const path = require('path');
 const args = require('minimist')(process.argv.slice(2));
 
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 
-exec_ = (cmd, options) => {
-    return new Promise ( (resolve, reject) => { 
-        exec(cmd, options, (error, stdout, stderr) => {    
-            if (error) {                
-                reject({error, stderr})            
-            } else {
-                resolve(stdout);
-            }
+spawn_ = (cmd, parameters) => {
+    return new Promise( (resolve, reject) => {
+        const process = spawn(cmd, parameters) 
+        /*
+        process.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
         });
-    });
+    
+        process.stderr.on('data', (data) => {
+            console.log(`stderr: ${data}`);
+        });
+        */
+        process.on('close', (code) => {
+            if (code == 0)
+                resolve();
+            reject();
+        });
+    });   
 }
 
 async function main() {
-    console.log(args);
-
     if ( !args.src || !args.dst ) {
         console.log('Use: node sync --src sourcepath --dst destinationpath')
         return;
@@ -34,23 +40,36 @@ async function main() {
             files.push(file)    
     });
 
-    console.log('Will Transcode: ' + files.length)
-
     for(var i = 0; i < files.length; i++) {
         const bin    = path.join(__dirname, '/bin/ffmpeg.exe')
-        const input  = path.join(args.src, files[i]);
-        const output = path.join(args.dst, files[i])
-        const cmd    = `${bin} -i "${input}" -c:v h264 -b:v 4000k -c:a aac -b:a 256k "${output}"`
-        console.log(cmd);
+        const input  = path.join(args.src, files[i]);        
+        const output = path.join(args.dst, files[i]);
+
+        var temp_  = path.parse(output);        
+        temp_.base = '_' + temp_.base;
+        const temp = path.format(temp_) ;
+
+        const cmd    = `${bin} -i "${input}" -c:v h264 -b:v 4000k -c:a aac -b:a 256k "${temp}"`
+        const params = [
+            '-y', 
+            '-i', input, 
+            '-c:v', 'h264', 
+            '-b:v', '4000k', 
+            '-c:a', 'aac', 
+            '-b:a', '256k', 
+            temp
+        ];
+
+        console.log(`Processing: ${i+1}/${files.length} "${files[i]}" => "${output}"`);
         try {
-            await exec_(cmd, {});
-            console.log(`Transcoded: ${files[i]}`)
+            await spawn_(bin, params)
+            console.log('COMPLETED !')
+            //await exec_(cmd, {});
+            fs.renameSync(temp, output);
         } catch(e) {
             console.log(e);
         }
-    }
-    //ffmpeg -i %1 -c:v h264 -b:v 4000k -c:a aac -b:a 256k %1.mp4
-    
+    }    
 }
 
 main();
